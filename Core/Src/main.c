@@ -41,6 +41,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "can.h"
 #include "crc.h"
 #include "dma.h"
 #include "i2c.h"
@@ -143,6 +144,7 @@ int main(void)
   MX_CRC_Init();
   MX_TIM12_Init();
   MX_ADC1_Init();
+  MX_CAN1_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();

@@ -41,13 +41,13 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "can.h"
 #include "crc.h"
 #include "dma.h"
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
-#include "usb_host.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -143,6 +143,7 @@ int main(void)
   MX_CRC_Init();
   MX_TIM12_Init();
   MX_ADC1_Init();
+  MX_CAN1_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -150,7 +151,7 @@ int main(void)
   //打印信息，与printf()函数的用法一样，能够根据等级进行屏蔽日志输出
   LOG_DEBUG("Start...\r\n");
   /* USER CODE END 2 */
-	//由于开启了系统调度（osKernelStart()），所以单片机不会跑到这个while循环里来
+
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
   MX_FREERTOS_Init();
@@ -162,10 +163,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1) {
     /* USER CODE END WHILE */
-		
-	//由于开启了系统调度（osKernelStart()），所以单片机不会跑到这个while循环里来
-    
-	/* USER CODE BEGIN 3 */
+
+    /* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
 }
