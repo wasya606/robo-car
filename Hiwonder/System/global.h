@@ -31,7 +31,7 @@
 #include "object.h"
 #include "chassis.h"
 
-// 全系统全局变量
+// System-wide global variables
 extern struct PacketController packet_controller;
 extern ButtonObjectTypeDef *buttons[2];
 extern BuzzerObjectTypeDef *buzzers[1];

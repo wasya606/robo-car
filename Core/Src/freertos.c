@@ -23,6 +23,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "usbh_hid_gamepad.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -173,14 +174,24 @@ const osMessageQueueAttr_t lvgl_event_queue_attributes = {
 };
 /* Definitions for moving_ctrl_queue */
 osMessageQueueId_t moving_ctrl_queueHandle;
+osMessageQueueId_t moving_ctrl_queueHandle_2;
 uint8_t moving_ctrl_queueBuffer[ 32 * sizeof( char ) ];
+uint8_t moving_ctrl_queueBuffer_2[ 32 * sizeof( GamePadMessage ) ];
 osStaticMessageQDef_t moving_ctrl_queueControlBlock;
+osStaticMessageQDef_t moving_ctrl_queueControlBlock_2;
 const osMessageQueueAttr_t moving_ctrl_queue_attributes = {
   .name = "moving_ctrl_queue",
   .cb_mem = &moving_ctrl_queueControlBlock,
   .cb_size = sizeof(moving_ctrl_queueControlBlock),
   .mq_mem = &moving_ctrl_queueBuffer,
   .mq_size = sizeof(moving_ctrl_queueBuffer)
+};
+const osMessageQueueAttr_t moving_ctrl_queue_attributes_2 = {
+  .name = "moving_ctrl_queue_2",
+  .cb_mem = &moving_ctrl_queueControlBlock_2,
+  .cb_size = sizeof(moving_ctrl_queueControlBlock_2),
+  .mq_mem = &moving_ctrl_queueBuffer_2,
+  .mq_size = sizeof(moving_ctrl_queueBuffer_2)
 };
 /* Definitions for bluetooth_tx_queue */
 osMessageQueueId_t bluetooth_tx_queueHandle;
@@ -421,6 +432,8 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of moving_ctrl_queue */
   moving_ctrl_queueHandle = osMessageQueueNew (32, sizeof(char), &moving_ctrl_queue_attributes);
+	
+	moving_ctrl_queueHandle_2 = osMessageQueueNew (32, sizeof(GamePadMessage), &moving_ctrl_queue_attributes_2);
 
   /* creation of bluetooth_tx_queue */
   bluetooth_tx_queueHandle = osMessageQueueNew (8, 8, &bluetooth_tx_queue_attributes);

@@ -108,8 +108,10 @@ void jettank_control(char msg);
 void jetauto_control(char msg);
 // Large Ackerman Car Control Function
 void jetacker_control(char msg);
+
+void move_chassis(const float speed, const int16_t turn_radius, const uint32_t posi);
 // Small Ackerman car control function
-void minacker_control(char msg);
+void minacker_control(GamePadMessage* gp_message);
 
 // PTZ control function
 void holder_control(char msg, uint8_t servo_1, uint8_t servo_2);
@@ -132,7 +134,7 @@ void app_task_entry(void *argument)
     // Queue handle for motion control
     // The handle signal is pushed into the USBH_HID_EventCallback() callback function in gampad_handle.c
     // Take out the control of the car movement in the user entry function
-    extern osMessageQueueId_t moving_ctrl_queueHandle;
+    extern osMessageQueueId_t moving_ctrl_queueHandle_2;
 
     /* Flash read type */
     hw_flash_Read(SAVE_ADD, &Chassis_run_type, 1);
@@ -167,10 +169,12 @@ void app_task_entry(void *argument)
     // Start ADC channel conversion
     HAL_ADC_Start(&hadc1);
 
-    char msg = '\0';
+
+		static GamePadMessage gp_message = {' ', 0, 0, 0, 0};
+    char msg = ' ';
     uint8_t msg_prio;
     // Initialize the motion control queue (parameter: queue handle)
-    osMessageQueueReset(moving_ctrl_queueHandle);
+    osMessageQueueReset(moving_ctrl_queueHandle_2);
 
     // Initialize chassis motor motion parameters
     chassis_init();
@@ -192,51 +196,54 @@ void app_task_entry(void *argument)
         //  Parameter 2: the address of the object to be placed (here is a char type address)
         //  Parameter 3: message priority
         //  Parameter 4: Timeout setting (you can set the waiting time for acquisition)
-        if (osMessageQueueGet(moving_ctrl_queueHandle, &msg, &msg_prio, 300) != osOK)
+        if (osMessageQueueGet(moving_ctrl_queueHandle_2, &gp_message, &msg_prio, 300) != osOK)
         {
-            printf("stop\n");
+            printf("os is not OK! Stop\r");
             chassis->stop(chassis);
             continue;
         }
 
-        printf("msg: %c\r\n", msg); // debug print
+        msg = gp_message.msg;
+		
+        printf("-->>> msg: %c\n", msg); // debug print				
+		printf("===>>> Info: %d, %d, %d, %d\n", gp_message.lx, gp_message.ly, gp_message.rx, gp_message.ry);
 
         // Chassis control function
         switch (Chassis_run_type)
         {
         case CHASSIS_TYPE_TI4WD: // Differential
         case CHASSIS_TYPE_HUGE_TI4WD:
-            //				printf("CHASSIS_TYPE_TI4WD\n");
+            //printf("CHASSIS_TYPE_TI4WD\n");
             ti4wd_control(msg);
             // PTZ
             holder_control(msg, 0, 1);
             break;
         case CHASSIS_TYPE_TANKBLACK: // Small crawler
-            //				printf("CHASSIS_TYPE_TANKBLACK\n");
+            //printf("CHASSIS_TYPE_TANKBLACK\n");
             tankblack_control(msg);
             holder_control(msg, 0, 1);
             break;
         case CHASSIS_TYPE_JETTANK: // Large Tracks
-            //				printf("CHASSIS_TYPE_JETTANK\n");
+            //printf("CHASSIS_TYPE_JETTANK\n");
             jettank_control(msg);
             holder_control(msg, 0, 1);
             break;
         case CHASSIS_TYPE_JETAUTO: // McLennan
-            //				printf("CHASSIS_TYPE_JETAUTO\n");
+            //printf("CHASSIS_TYPE_JETAUTO\n");
             jetauto_control(msg);
             holder_control(msg, 0, 1);
             break;
         case CHASSIS_TYPE_JETACKER: // Big Ackerman
-            //				printf("CHASSIS_TYPE_JETACKER\n");
+            //printf("CHASSIS_TYPE_JETACKER\n");
             jetacker_control(msg);
             holder_control(msg, 0, 1);
             break;
         case CHASSIS_TYPE_MINACKER: // Ackerman Jr.
-            minacker_control(msg);
+            minacker_control(&gp_message);
             break;
 
         default: // Differential
-            //				printf("Chassis_run_type:default\n");
+            //printf("Chassis_run_type:default\n");
             Chassis_run_type = CHASSIS_TYPE_TI4WD;
             ti4wd_control(msg);
             holder_control(msg, 0, 1);
@@ -937,20 +944,47 @@ void get_pwm_servo_position(char msg)
     }
 }
 
+void move_chassis(const float speed, const int16_t turn_radius, const uint32_t posi)
+{
+    if ((int)speed != 0 && turn_radius != 0) {
+        chassis->set_velocity_radius(chassis, speed, turn_radius, false);
+    } else if ((int)speed != 0 && turn_radius == 0) {
+        chassis->set_velocity(chassis, speed, 0, 0);
+        pwm_servo_set_position(pwm_servos[0], 1500, 120);
+    } else if ((int)speed == 0 && turn_radius != 0) {
+        chassis->stop(chassis);
+        //int16_t whellPos = 1500 + turn_radius;
+        pwm_servo_set_position(pwm_servos[0], posi, 120);
+    } else {
+        pwm_servo_set_position(pwm_servos[0], 1500, 120);
+        chassis->stop(chassis);
+    }
+}
+
 /*
  *  Little Ackermann chassis control function
- *  Parameters: Control command
+ *  Parameters: Game pad message
  *  This function receives a char type parameter to determine which action to run.
  */
-void minacker_control(char msg)
+void minacker_control(GamePadMessage* gp_message)
 {
     // Define the motor speed
     // The recommended range is [50 , 300]
-    static float speed = 200.0f;
+	char msg = gp_message->msg;
+    static float speed = 100.0f;
     static uint32_t posi = 1500;
+    const uint8_t rxAbs = abs(gp_message->rx);
+	const uint8_t positionStep = 100 * rxAbs / 127;
+    const int8_t rxSign = gp_message->rx > 0 ? -1 : gp_message->rx < 0 ? 1 : 0;
+    const int16_t turn_radius = rxAbs > 1 ? rxSign * (600 - rxAbs * 4) : 0;
+    
+    const int8_t acc = (gp_message->ly > 0 && gp_message->ly < 2) || (gp_message->ly < 0 && gp_message->ly > -2) ? 0 : gp_message->ly;
+    const float speedMove = speed * acc / 127.0f;
 
     get_pwm_servo_position(msg);
-
+	
+	printf("***** SPEED: %f, SPEED_MOVE: %f, positionStep: %d, turn_radius: %d, posi: %d\r\n", speed, speedMove, positionStep, turn_radius, posi);
+	
     switch (msg)
     {
     case 'S':
@@ -979,12 +1013,14 @@ void minacker_control(char msg)
         // Moving at the linear speed of x-axis speed (i.e. moving forward)
         // set_velocity()
         // Parameter 1: itself, parameter 2: x-axis speed, parameter 3: y-axis speed, parameter 4: angular velocity of the car
-        chassis->set_velocity(chassis, speed, 0, 0);
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'B':
     { // Left stick upper left
-        chassis->set_velocity(chassis, speed, 0, 0);
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'C':
@@ -994,18 +1030,21 @@ void minacker_control(char msg)
     }
     case 'D':
     { // Left stick lower left
-        chassis->set_velocity(chassis, -speed, 0, 0);
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'E':
     { // Left Stick Down
         // Moving at a linear speed of -speed on the x-axis (i.e. backwards)
-        chassis->set_velocity(chassis, -speed, 0, 0);
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'F':
     { // Left stick right down
-        chassis->set_velocity(chassis, -speed, 0, 0);
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'G':
@@ -1015,7 +1054,8 @@ void minacker_control(char msg)
     }
     case 'H':
     { // Left stick Up right
-        chassis->set_velocity(chassis, speed, 0, 0);
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
 
@@ -1023,8 +1063,11 @@ void minacker_control(char msg)
     case 'j':
     { // triangle
         // Acceleration
-        speed += 50;
-        speed = speed > 300 ? 300 : speed;
+        speed += 25;
+		if (speed > 700) {
+            speed = 700;
+			buzzer_didi(buzzers[0], 4500, 100, 50, 3);
+		}
         break;
     }
     case 'l':
@@ -1034,8 +1077,11 @@ void minacker_control(char msg)
     case 'n':
     { // fork
         // Deceleration
-        speed -= 50;
-        speed = speed < 50 ? 50 : speed;
+        speed -= 25;
+        if (speed < 25) {
+            speed = 25;
+			 buzzer_didi(buzzers[0], 800, 100, 200, 3);
+        }
         break;
     }
     case 'p':
@@ -1047,49 +1093,72 @@ void minacker_control(char msg)
     case 'R':
     { // Right Stick Middle
         posi = 1500;
-        pwm_servo_set_position(pwm_servos[0], posi, 120);
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'J':
     { // Right Stick Up
-
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
         break;
     }
     case 'K':
     { // Right stick upper left
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        posi -= positionStep;
+        posi = (posi <= 800) ? 800 : posi;
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'L':
     { // Right Stick Left
         // Set the gimbal lower servo to the original angle -50
-        posi -= 100;
+        posi -= positionStep;
         posi = (posi <= 800) ? 800 : posi;
-        pwm_servo_set_position(pwm_servos[0], posi, 120);
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'M':
     { // Right stick Down left
+        //chassis->set_velocity(chassis, -speedMove, 0, 0);
+        posi -= positionStep;
+        posi = (posi <= 800) ? 800 : posi;
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'N':
     { // Right Stick Down
-
+        //chassis->set_velocity(chassis, -speedMove, 0, 0);
         break;
     }
     case 'O':
     { // Right stick right down
+        //chassis->set_velocity(chassis, -speedMove, 0, 0);
+        posi += positionStep;
+        posi = (posi >= 2200) ? 2200 : posi;
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'P':
     { // Right Stick Right
         // Adjust the servo angle of the gimbal to +50
-        posi += 100;
+        posi += positionStep;
         posi = (posi >= 2200) ? 2200 : posi;
-        pwm_servo_set_position(pwm_servos[0], posi, 120);
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'Q':
     { // Right stick upper right
+        //chassis->set_velocity(chassis, speedMove, 0, 0);
+        posi += positionStep;
+        posi = (posi >= 2200) ? 2200 : posi;
+        //pwm_servo_set_position(pwm_servos[0], posi, 120);
+        move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'f':
@@ -1106,6 +1175,10 @@ void minacker_control(char msg)
     default:
         break;
     }
+    
+//    if (acc == 0) {
+//        chassis->stop(chassis);
+//    }
 }
 
 // PTZ control function

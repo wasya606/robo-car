@@ -12,12 +12,30 @@ extern "C" {
 
 typedef struct {
     uint16_t buttons;
-	uint8_t hat;
+		uint8_t hat;
     int8_t lx;
     int8_t ly;
     int8_t rx;
     int8_t ry;
 } HID_GAMEPAD_Info_TypeDef;
+
+//struct GamePadMessage_s {
+//    char msg;
+//    int8_t lx;
+//    int8_t ly;
+//    int8_t rx;
+//    int8_t ry;
+//} GamePadMessage_default = {' ', 0, 0, 0, 0};
+
+//typedef struct GamePadMessage_s GamePadMessage
+
+typedef struct {
+    char msg;
+    int8_t lx;
+    int8_t ly;
+    int8_t rx;
+    int8_t ry;
+} GamePadMessage;
 
 USBH_StatusTypeDef USBH_HID_GamepadInit(USBH_HandleTypeDef *phost);
 HID_GAMEPAD_Info_TypeDef *USBH_HID_GetGamepadInfo(USBH_HandleTypeDef *phost);

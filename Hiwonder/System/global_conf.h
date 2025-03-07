@@ -4,7 +4,7 @@
 #define ENABLE_DEBUG_UART    1			  /* 是否使用串口打印日志，1：串口输出，0：JLink输出 */
 
 #define ENABLE_IMU  1                     /* IMU 任务是否启动 */
-#define ENABLE_LVGL 0                     /* LVGL 任务是否启动 */
+#define ENABLE_LVGL 1                     /* LVGL 任务是否启动 */
 #define ENABLE_SBUS 1                     /* SBUS 任务是否启动 */
 #define ENABLE_BLUETOOTH                1 /* 蓝牙是否开启 */
 #define ENABLE_BLUETOOTH_BATTERY_REPORT 1 /* 蓝牙电压报告是否开启 */

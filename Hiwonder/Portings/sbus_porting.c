@@ -280,7 +280,7 @@ static void deal_SbusData( SBusStatusObjectTypeDef *status )
 	
 }
 
-/* 将摇杆对应区域映射为相对应的字符 */
+/* Map the joystick corresponding area to the corresponding character */
 static char A_T_C(int16_t analog_x, int16_t analog_y)
 {
     char result = ' ';

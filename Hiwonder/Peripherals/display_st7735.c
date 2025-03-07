@@ -131,8 +131,8 @@ void st7735_set_window(ST7735ObjectTypeDef *self, int x0, int y0, int x1, int y1
 
 static void export_st7735_draw_pixel(DisplayObjectTypeDef *self_base, int x, int y, uint32_t color)
 {
-    //设置指定像素为指定颜色
-    //Args: x (int): X轴坐标, Y (int): Y轴坐标, color (int): 565格式颜色
+    //Sets the specified pixel to the specified color
+    //Args: x (int): X-axis coordinate, Y (int): Y-axis coordinate, color (int): 565 format color
     st7735_set_window((ST7735ObjectTypeDef*)self_base, x, y, x, y);
     uint8_t data[] = {color >> 8, (uint8_t)color};
     write_data((ST7735ObjectTypeDef*)self_base, data, 2);
@@ -140,9 +140,10 @@ static void export_st7735_draw_pixel(DisplayObjectTypeDef *self_base, int x, int
 
 static void export_st7735_draw_bitmap(DisplayObjectTypeDef *self_base, int x1, int y1, int x2, int y2, uint8_t *data)
 {
-    //复制缓冲区到屏幕的指定位置
-    //Args:data (bytes): 要显示的数据
-    //x (int): 缓冲区在屏幕位置的左上角X轴坐标, Y (int): 缓冲区在屏幕位置的左上角Y轴坐标
+    // Copies the buffer to the specified position on the screen
+    // Args:data (bytes): Data to display
+    // x (int): The X-axis coordinate of the upper left corner of the buffer on the screen,
+    // y (int): The Y-axis coordinate of the upper left corner of the buffer on the screen
     st7735_set_window((ST7735ObjectTypeDef*)self_base, x1, y1, x2, y2);
     write_data((ST7735ObjectTypeDef*)self_base, data, 2 * ((x2 - x1) + 1) * ((y2 - y1) + 1));
 }

@@ -1157,7 +1157,7 @@ Queue_t * const pxQueue = xQueue;
 		space'. */
 		if( uxMessagesWaiting < pxQueue->uxLength )
 		{
-			const int8_t cTxLock = pxQueue->cTxLock;
+            const int8_t cTxLock = pxQueue->cTxLock;
 
 			traceQUEUE_SEND_FROM_ISR( pxQueue );
 
