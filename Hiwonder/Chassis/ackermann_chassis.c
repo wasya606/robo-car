@@ -29,6 +29,7 @@ float ackermann_velocity_difference(AckermannChassisTypeDef *self,int size,float
 //jetacker
 void jetacker_chassis_move(AckermannChassisTypeDef *self, float vx, float r )
 {
+    self->target_speed = vx;
 	float vr = 0 , vl = 0;
 	float angle = 0;
 	if(r != 0)
@@ -54,9 +55,27 @@ void jetacker_chassis_move(AckermannChassisTypeDef *self, float vx, float r )
 	self->set_motors(self , vl , vr , angle);
 }
 
-//minacker
-void minacker_chassis_move(AckermannChassisTypeDef *self, float vx, float r )
+void minacker_move(AckermannChassisTypeDef *self, float speed)
 {
+    self->target_speed = speed;
+    float speed_left = speed;
+    float speed_right = speed;
+    const int helm_position = self->get_current_helm_position();
+    if (helm_position != 0) {
+        const float angle = - helm_position * PI / 2000;
+        const float turn_radius = self->wheelbase / tan(angle);
+        speed_left = speed / turn_radius * (turn_radius - self->shaft_length / 2);
+        speed_right = speed / turn_radius * (turn_radius + self->shaft_length / 2);
+    }
+    speed_left = linear_speed_to_rps(self , speed_left);
+    speed_right = linear_speed_to_rps(self , speed_right);
+    self->set_speed(speed_left, speed_right);
+}
+
+//minacker
+void minacker_chassis_move(AckermannChassisTypeDef *self, float vx, float r)
+{
+    self->target_speed = vx;
 	float vr = 0 , vl = 0;
 	float angle = 0;
 	if(r != 0)
@@ -84,9 +103,9 @@ void minacker_chassis_move(AckermannChassisTypeDef *self, float vx, float r )
 
 static void jetacker_stop(void *self)
 {
+    ((AckermannChassisTypeDef*)self)->target_speed = 0;
     ((AckermannChassisTypeDef*)self)->set_motors(self, 0, 0,500);
 }
-
 
 static void jetacker_set_velocity(void *self, float vx, float vy, float r)
 {
@@ -96,22 +115,23 @@ static void jetacker_set_velocity(void *self, float vx, float vy, float r)
 
 static void jetacker_set_velocity_radius(void* self, float linear, float r,bool swerve)
 {
-		jetacker_chassis_move(self, linear, r);
+	jetacker_chassis_move(self, linear, r);
 }
 
 static void minacker_stop(void *self)
 {
-    ((AckermannChassisTypeDef*)self)->set_motors(self, 0, 0,1500);
+    ((AckermannChassisTypeDef*)self)->target_speed = 0;
+    ((AckermannChassisTypeDef*)self)->set_speed(0, 0);
 }
 
 static void minacker_set_velocity(void *self, float vx, float vy, float r)
 {
-    minacker_chassis_move(self, vx, r);
+    minacker_move(self, vx);
 }
 
 static void minacker_set_velocity_radius(void* self, float linear, float r,bool swerve)
 {
-		minacker_chassis_move(self, linear, r);
+    minacker_chassis_move(self, linear, r);
 }
 
 void ackermann_chassis_object_init(AckermannChassisTypeDef *self){

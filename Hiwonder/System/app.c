@@ -20,6 +20,7 @@
 #include "pwm_servo.h"
 #include "serial_servo.h"
 #include "FlashSave_porting.h"
+#include "ackermann_chassis.h"
 
 /* PTZ Servo Limit Parameters */
 #define HOLDER_MIN 500  // Corresponding to 0° of the servo
@@ -170,7 +171,7 @@ void app_task_entry(void *argument)
     HAL_ADC_Start(&hadc1);
 
 
-		static GamePadMessage gp_message = {' ', 0, 0, 0, 0};
+	static GamePadMessage gp_message = {' ', 0, 0, 0, 0};
     char msg = ' ';
     uint8_t msg_prio;
     // Initialize the motion control queue (parameter: queue handle)
@@ -198,15 +199,15 @@ void app_task_entry(void *argument)
         //  Parameter 4: Timeout setting (you can set the waiting time for acquisition)
         if (osMessageQueueGet(moving_ctrl_queueHandle_2, &gp_message, &msg_prio, 300) != osOK)
         {
-            printf("os is not OK! Stop\r");
+            //printf("os is not OK! Stop\r");
             chassis->stop(chassis);
             continue;
         }
 
         msg = gp_message.msg;
 		
-        printf("-->>> msg: %c\n", msg); // debug print				
-		printf("===>>> Info: %d, %d, %d, %d\n", gp_message.lx, gp_message.ly, gp_message.rx, gp_message.ry);
+        //printf("-->>> msg: %c\n", msg); // debug print				
+		//printf("===>>> Info: %d, %d, %d, %d\n", gp_message.lx, gp_message.ly, gp_message.rx, gp_message.ry);
 
         // Chassis control function
         switch (Chassis_run_type)
@@ -954,7 +955,7 @@ void move_chassis(const float speed, const int16_t turn_radius, const uint32_t p
     } else if ((int)speed == 0 && turn_radius != 0) {
         chassis->stop(chassis);
         //int16_t whellPos = 1500 + turn_radius;
-        pwm_servo_set_position(pwm_servos[0], posi, 120);
+        pwm_servo_set_position(pwm_servos[0], posi, 100);
     } else {
         pwm_servo_set_position(pwm_servos[0], 1500, 120);
         chassis->stop(chassis);
@@ -973,17 +974,27 @@ void minacker_control(GamePadMessage* gp_message)
 	char msg = gp_message->msg;
     static float speed = 100.0f;
     static uint32_t posi = 1500;
-    const uint8_t rxAbs = abs(gp_message->rx);
-	const uint8_t positionStep = 100 * rxAbs / 127;
-    const int8_t rxSign = gp_message->rx > 0 ? -1 : gp_message->rx < 0 ? 1 : 0;
-    const int16_t turn_radius = rxAbs > 1 ? rxSign * (600 - rxAbs * 4) : 0;
+    //const uint8_t rxAbs = abs(gp_message->rx);
+	//const uint8_t positionStep = 100 * rxAbs / 127;
+    //const int8_t rxSign = gp_message->rx > 0 ? -1 : gp_message->rx < 0 ? 1 : 0;
+    //const int16_t turn_radius = rxAbs > 1 ? rxSign * (600 - rxAbs * 3) : 0;
+    posi = gp_message->rx > 5 || gp_message->rx < -5 ? 1500 + gp_message->rx * 4.2 : 1500;
+    pwm_servo_set_position(pwm_servos[0], posi, 100);
     
-    const int8_t acc = (gp_message->ly > 0 && gp_message->ly < 2) || (gp_message->ly < 0 && gp_message->ly > -2) ? 0 : gp_message->ly;
+    const int8_t acc = gp_message->ly > 2 || gp_message->ly < -2 ? gp_message->ly : 0;
     const float speedMove = speed * acc / 127.0f;
-
-    get_pwm_servo_position(msg);
+    chassis->set_velocity(chassis, speedMove, 0, 0);
+    
+    //get_pwm_servo_position(msg);
 	
-	printf("***** SPEED: %f, SPEED_MOVE: %f, positionStep: %d, turn_radius: %d, posi: %d\r\n", speed, speedMove, positionStep, turn_radius, posi);
+    const AckermannChassisTypeDef* ackermannChassis = (AckermannChassisTypeDef*)chassis;
+    const float current_speed = ackermannChassis->get_current_speed();
+    const float target_speed = ackermannChassis->target_speed;
+    const int helm_position = ackermannChassis->get_current_helm_position();
+    
+    printf("---->>> Target speed: %f,\tCurrent speed: %f,\tHelm position: %d\r\n", target_speed, current_speed, helm_position);
+    
+	//printf("***** SPEED: %f, SPEED_MOVE: %f, turn_radius: %d, posi: %d\r\n", speed, speedMove, positionStep, turn_radius, posi);
 	
     switch (msg)
     {
@@ -1014,13 +1025,13 @@ void minacker_control(GamePadMessage* gp_message)
         // set_velocity()
         // Parameter 1: itself, parameter 2: x-axis speed, parameter 3: y-axis speed, parameter 4: angular velocity of the car
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'B':
     { // Left stick upper left
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'C':
@@ -1031,20 +1042,20 @@ void minacker_control(GamePadMessage* gp_message)
     case 'D':
     { // Left stick lower left
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'E':
     { // Left Stick Down
         // Moving at a linear speed of -speed on the x-axis (i.e. backwards)
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'F':
     { // Left stick right down
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'G':
@@ -1055,7 +1066,7 @@ void minacker_control(GamePadMessage* gp_message)
     case 'H':
     { // Left stick Up right
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
 
@@ -1063,9 +1074,9 @@ void minacker_control(GamePadMessage* gp_message)
     case 'j':
     { // triangle
         // Acceleration
-        speed += 25;
-		if (speed > 700) {
-            speed = 700;
+        speed += 50;
+		if (speed > 400) {
+            speed = 400;
 			buzzer_didi(buzzers[0], 4500, 100, 50, 3);
 		}
         break;
@@ -1077,9 +1088,9 @@ void minacker_control(GamePadMessage* gp_message)
     case 'n':
     { // fork
         // Deceleration
-        speed -= 25;
-        if (speed < 25) {
-            speed = 25;
+        speed -= 50;
+        if (speed < 50) {
+            speed = 50;
 			 buzzer_didi(buzzers[0], 800, 100, 200, 3);
         }
         break;
@@ -1094,7 +1105,7 @@ void minacker_control(GamePadMessage* gp_message)
     { // Right Stick Middle
         posi = 1500;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'J':
@@ -1105,28 +1116,28 @@ void minacker_control(GamePadMessage* gp_message)
     case 'K':
     { // Right stick upper left
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        posi -= positionStep;
-        posi = (posi <= 800) ? 800 : posi;
+        //posi -= positionStep;
+        //posi = (posi <= 800) ? 800 : posi;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'L':
     { // Right Stick Left
         // Set the gimbal lower servo to the original angle -50
-        posi -= positionStep;
-        posi = (posi <= 800) ? 800 : posi;
+        //posi -= positionStep;
+        //posi = (posi <= 800) ? 800 : posi;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'M':
     { // Right stick Down left
         //chassis->set_velocity(chassis, -speedMove, 0, 0);
-        posi -= positionStep;
-        posi = (posi <= 800) ? 800 : posi;
+        //posi -= positionStep;
+        //posi = (posi <= 800) ? 800 : posi;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'N':
@@ -1137,28 +1148,28 @@ void minacker_control(GamePadMessage* gp_message)
     case 'O':
     { // Right stick right down
         //chassis->set_velocity(chassis, -speedMove, 0, 0);
-        posi += positionStep;
-        posi = (posi >= 2200) ? 2200 : posi;
+        //posi += positionStep;
+        //posi = (posi >= 2200) ? 2200 : posi;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'P':
     { // Right Stick Right
         // Adjust the servo angle of the gimbal to +50
-        posi += positionStep;
-        posi = (posi >= 2200) ? 2200 : posi;
+        //posi += positionStep;
+        //posi = (posi >= 2200) ? 2200 : posi;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'Q':
     { // Right stick upper right
         //chassis->set_velocity(chassis, speedMove, 0, 0);
-        posi += positionStep;
-        posi = (posi >= 2200) ? 2200 : posi;
+        //posi += positionStep;
+        //posi = (posi >= 2200) ? 2200 : posi;
         //pwm_servo_set_position(pwm_servos[0], posi, 120);
-        move_chassis(speedMove, turn_radius, posi);
+        //move_chassis(speedMove, turn_radius, posi);
         break;
     }
     case 'f':

@@ -15,7 +15,7 @@ MecanumChassisTypeDef      jetauto;
 AckermannChassisTypeDef   jetacker;
 AckermannChassisTypeDef   minacker;
 
-
+#define PI 3.141592654f
 
 static void jetank_set_motors(void* self, float rps_l, float rps_r)
 {
@@ -78,8 +78,41 @@ static void minacker_set_motors(void* self, float rps_lh, float rps_lt,int posit
     encoder_motor_set_speed(motors[0], rps_lt);
 }
 
-
 ChassisTypeDef *chassis = (ChassisTypeDef*)&jetauto;
+
+static void ackermann_set_speed(const float speed_left, const float speed_right)
+{
+    encoder_motor_set_speed(motors[MOTOR_RIGHT], speed_right);
+    encoder_motor_set_speed(motors[MOTOR_LEFT], -speed_left);
+}
+
+static int ackermann_current_helm_position()
+{
+    return pwm_servos[0]->current_duty - 1500;
+}
+
+static float ackermann_current_speed()
+{
+    return ((AckermannChassisTypeDef*)chassis)->wheel_diameter * PI * (motors[MOTOR_RIGHT]->rps - motors[MOTOR_LEFT]->rps) / 2;
+}
+
+//pid_controller.set_point
+
+static float ackermann_motor_speed(enum MotorPosition motor_position, enum MotorSpeedValueType speed_value_type)
+{
+    float result = 0;
+    switch (speed_value_type)
+    {
+    case RPS:
+        result = motors[motor_position]->rps;
+        break;
+    case TPS:
+        result = motors[motor_position]->tps;
+    default:
+        break;
+    }
+    return result;
+}
 
 void chassis_init(void)
 {
@@ -124,7 +157,12 @@ void chassis_init(void)
     jetacker.wheel_diameter = JETACKER_WHEEL_DIAMETER;
     jetacker.shaft_length = JETACKER_SHAFT_LENGTH;
     jetacker.wheelbase = JETACKER_WHEELBASE;
+    jetacker.target_speed = 0;
     jetacker.set_motors = jetacker_set_motors;
+    jetacker.set_speed = ackermann_set_speed;
+    jetacker.get_current_helm_position = ackermann_current_helm_position;
+    jetacker.get_current_speed = ackermann_current_speed;
+    jetacker.get_motor_speed = ackermann_motor_speed;
 	ackermann_chassis_object_init(&jetacker); //结构体初始化放后面
 	
     minacker.base.chassis_type = CHASSIS_TYPE_MINACKER;
@@ -132,7 +170,12 @@ void chassis_init(void)
     minacker.wheel_diameter = MINACKER_WHEEL_DIAMETER;
     minacker.shaft_length = MINACKER_SHAFT_LENGTH;
     minacker.wheelbase = MINACKER_WHEELBASE;
+    minacker.target_speed = 0;
     minacker.set_motors = minacker_set_motors;
+    minacker.set_speed = ackermann_set_speed;
+    minacker.get_current_helm_position = ackermann_current_helm_position;
+    minacker.get_current_speed = ackermann_current_speed;
+    minacker.get_motor_speed = ackermann_motor_speed;
 	ackermann_chassis_object_init(&minacker); //结构体初始化放后面
 }
 
