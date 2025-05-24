@@ -21,6 +21,9 @@
 #include "serial_servo.h"
 #include "FlashSave_porting.h"
 #include "ackermann_chassis.h"
+#include "imu_mpu6050.h"
+#include "gui_guider.h"
+#include "can.h"
 
 /* PTZ Servo Limit Parameters */
 #define HOLDER_MIN 500  // Corresponding to 0° of the servo
@@ -86,15 +89,31 @@ void button_event_callback(ButtonObjectTypeDef *button, ButtonEventIDEnum event)
 void IMU_read_timer_callback(void *argument)
 {
     //	//Note: MCU should not print floating point numbers as much as possible
-    //	static float rpy[3] = {0,0,0};
-    //	static char msg[16];
-    //	imus[0]->get_euler(imus[0], rpy);	//Reading IMU data
-    //	sprintf(msg, "Roll :%3.2f", rpy[0]);	//Convert data into a string
-    //	printf("%s\n",msg);		//Printing a string
-    //	sprintf(msg, "Pitch:%3.2f", rpy[1]);	//Convert data into a string
-    //	printf("%s\n",msg);		//Printing a string
-    //	sprintf(msg, "Yaw  :%3.2f", rpy[2]);	//Convert data into a string
-    //	printf("%s\n",msg);		//Printing a string
+    	static float rpy[3] = {0,0,0};
+        static float quat[4] = {0,0,0,0};
+    	static char msg[16];
+    	imus[0]->get_euler(imus[0], rpy);	//Reading IMU data
+        imus[0]->get_quat(imus[0], quat);
+    	sprintf(msg, "R: %3.2f", rpy[0]);	//Convert data into a string
+    	//printf("%s\t",msg);		
+        lv_label_set_text_fmt(guider_ui.screen_imu_label_1, "R:%s", msg);
+
+    	sprintf(msg, "P: %3.2f", rpy[1]);	
+    	//printf("%s\t",msg);		
+        lv_label_set_text_fmt(guider_ui.screen_imu_label_2, "P:%s", msg);
+
+    	sprintf(msg, "Y: %3.2f", rpy[2]);	
+    	//printf("%s\t",msg);
+        lv_label_set_text_fmt(guider_ui.screen_imu_label_3, "Y:%s", msg);		
+
+        // sprintf(msg, "Q: %3.2f", quat[0]);	
+    	// printf("%s\t",msg);
+        // sprintf(msg, "U: %3.2f", quat[1]);	
+    	// printf("%s\t",msg);	
+        // sprintf(msg, "A: %3.2f", quat[2]);	
+    	// printf("%s\t",msg);	
+        // sprintf(msg, "T: %3.2f", quat[3]);	
+    	// printf("%s\n",msg);
 }
 
 void send_type(ChassisTypeEnum chassis_type);
@@ -166,7 +185,7 @@ void app_task_entry(void *argument)
     // Turn on the power monitoring timer to monitor the power in real time
     osTimerStart(battery_check_timerHandle, BATTERY_TASK_PERIOD);
     // Start the IMU reading timer, reading once every 500ms
-    osTimerStart(IMU_read_timerHandle, IMU_TASK_PERIOD);
+    //osTimerStart(IMU_read_timerHandle, IMU_TASK_PERIOD);
     // Start ADC channel conversion
     HAL_ADC_Start(&hadc1);
 
@@ -190,7 +209,6 @@ void app_task_entry(void *argument)
     // Loop: The loop in the RTOS task must have osDelay or other system blocking functions, otherwise it will cause system abnormalities
     for (;;)
     {
-
         // Receive information from the motion control queue. If the acquisition takes more than 100ms, it is considered unsuccessful and the motor is stopped, skipping this cycle.
         // osMessageQueueGet() Get the message in the queue
         //  Parameter 1: message queue handle
@@ -205,9 +223,8 @@ void app_task_entry(void *argument)
         }
 
         msg = gp_message.msg;
-		
-        //printf("-->>> msg: %c\n", msg); // debug print				
-		//printf("===>>> Info: %d, %d, %d, %d\n", gp_message.lx, gp_message.ly, gp_message.rx, gp_message.ry);
+
+        //printf("msg:%c\n", msg);
 
         // Chassis control function
         switch (Chassis_run_type)
@@ -250,7 +267,8 @@ void app_task_entry(void *argument)
             holder_control(msg, 0, 1);
             break;
         }
-    }
+        //vTaskDelay(pdMS_TO_TICKS(100));
+    } 
 }
 
 void send_type(ChassisTypeEnum chassis_type)
@@ -969,6 +987,7 @@ void move_chassis(const float speed, const int16_t turn_radius, const uint32_t p
  */
 void minacker_control(GamePadMessage* gp_message)
 {
+    const AckermannChassisTypeDef* ackermannChassis = (AckermannChassisTypeDef*)chassis;
     // Define the motor speed
     // The recommended range is [50 , 300]
 	char msg = gp_message->msg;
@@ -978,24 +997,26 @@ void minacker_control(GamePadMessage* gp_message)
 	//const uint8_t positionStep = 100 * rxAbs / 127;
     //const int8_t rxSign = gp_message->rx > 0 ? -1 : gp_message->rx < 0 ? 1 : 0;
     //const int16_t turn_radius = rxAbs > 1 ? rxSign * (600 - rxAbs * 3) : 0;
-    posi = gp_message->rx > 5 || gp_message->rx < -5 ? 1500 + gp_message->rx * 4.2 : 1500;
-    pwm_servo_set_position(pwm_servos[0], posi, 100);
+    posi = gp_message->rx > 2 || gp_message->rx < -2 ? 1500 + gp_message->rx * 4.2 : 1500;
+    const float target_helm_angle = gp_message->rx > 2 || gp_message->rx < -2 ? - gp_message->rx * MINACKER_MAX_HELM_ANGLE / 127.0f : 0;
+    //pwm_servo_set_position(pwm_servos[0], posi, 100);
+    ackermannChassis->set_helm_angle(target_helm_angle);
     
     const int8_t acc = gp_message->ly > 2 || gp_message->ly < -2 ? gp_message->ly : 0;
     const float speedMove = speed * acc / 127.0f;
     chassis->set_velocity(chassis, speedMove, 0, 0);
     
-    //get_pwm_servo_position(msg);
+    get_pwm_servo_position(msg);
 	
-    const AckermannChassisTypeDef* ackermannChassis = (AckermannChassisTypeDef*)chassis;
     const float current_speed = ackermannChassis->get_current_speed();
+    const float rps = ackermannChassis->get_motor_speed(MOTOR_RIGHT, RPS);
     const float target_speed = ackermannChassis->target_speed;
-    const int helm_position = ackermannChassis->get_current_helm_position();
+    const float helm_angle = ackermannChassis->get_helm_angle();
     
-    printf("---->>> Target speed: %f,\tCurrent speed: %f,\tHelm position: %d\r\n", target_speed, current_speed, helm_position);
+    //printf("==== Target speed: %f,\tSpeed: %f,\tRPS: %f\tHelm angle: %f ====\r\n", target_speed, current_speed, rps, helm_angle);
     
 	//printf("***** SPEED: %f, SPEED_MOVE: %f, turn_radius: %d, posi: %d\r\n", speed, speedMove, positionStep, turn_radius, posi);
-	
+
     switch (msg)
     {
     case 'S':
@@ -1181,8 +1202,32 @@ void minacker_control(GamePadMessage* gp_message)
         posi = 1500;
         // Set the servo rotation parameters
         pwm_servo_set_position(pwm_servos[0], posi, run_time);
+        break;
     }
-
+    case 'a':
+    {
+        uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
+        can_send_message(0x121, data, 4);
+        break;
+    }
+    case 'b':
+    {
+        uint8_t data[] = {0x11, 0x22, 0x33, 0x44};
+        can_send_message(0x122, data, 4);
+        break;
+    }
+    case 'd':
+    {
+        uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+        can_send_message(0x123, data, 8);
+        break;
+    }
+    case 'e':
+    {
+        uint8_t data[] = {0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
+        can_send_message(0x124, data, 8);
+        break;
+    }
     default:
         break;
     }

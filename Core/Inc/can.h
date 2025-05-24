@@ -41,6 +41,11 @@ extern CAN_HandleTypeDef hcan1;
 void MX_CAN1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void print_can_frame(const char* title, uint32_t id, uint8_t* rx_data, uint8_t dlc);
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan);
+
+void can_send_message(uint32_t id, uint8_t* data, uint8_t dlc);
 
 /* USER CODE END Prototypes */
 

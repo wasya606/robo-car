@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lvgl.h"
+#include "usbh_hid_gamepad.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +42,16 @@ typedef StaticEventGroup_t osStaticEventGroupDef_t;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+osMessageQueueId_t moving_ctrl_queueHandle_2;
+uint8_t moving_ctrl_queueBuffer_2[ 32 * sizeof( GamePadMessage ) ];
+osStaticMessageQDef_t moving_ctrl_queueControlBlock_2;
+const osMessageQueueAttr_t moving_ctrl_queue_attributes_2 = {
+  .name = "moving_ctrl_queue_2",
+  .cb_mem = &moving_ctrl_queueControlBlock_2,
+  .cb_size = sizeof(moving_ctrl_queueControlBlock_2),
+  .mq_mem = &moving_ctrl_queueBuffer_2,
+  .mq_size = sizeof(moving_ctrl_queueBuffer_2)
+};
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -427,6 +437,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
+    moving_ctrl_queueHandle_2 = osMessageQueueNew (32, sizeof(GamePadMessage), &moving_ctrl_queue_attributes_2);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */

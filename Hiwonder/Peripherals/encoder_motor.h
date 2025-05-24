@@ -1,7 +1,7 @@
 /**
  * @file encoder_motor.h
  * @author Lu Yongping (Lucas@hiwonder.com)
- * @brief 编码器电机控制头文件
+ * @brief Encoder Motor Control Header File
  * @version 0.1
  * @date 2023-05-12
  *

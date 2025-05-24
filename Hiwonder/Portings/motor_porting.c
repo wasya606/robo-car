@@ -43,7 +43,7 @@ void set_motor_type(EncoderMotorObjectTypeDef *motor, MotorTypeEnum type) {
 void motors_init(void)
 {
     for(int i = 0; i < 4; ++i) {
-        motors[i] = LWMEM_CCM_MALLOC(sizeof( EncoderMotorObjectTypeDef));
+        motors[i] = LWMEM_CCM_MALLOC(sizeof(EncoderMotorObjectTypeDef));
         encoder_motor_object_init(motors[i]);
 		motors[i]->ticks_overflow = 60000;
         motors[i]->ticks_per_circle = MOTOR_DEFAULT_TICKS_PER_CIRCLE;
@@ -54,13 +54,13 @@ void motors_init(void)
         motors[i]->pid_controller.kd = MOTOR_DEFAULT_PID_KD;
     }
 
-    /* 马达 1 */
+    /* Motor 1 */
     motors[0]->set_pulse = motor1_set_pulse;
     __HAL_TIM_SET_COUNTER(&htim1, 0);
     __HAL_TIM_ENABLE(&htim1);
     __HAL_TIM_MOE_ENABLE(&htim1);
 
-    /* 编码器 */
+    /* Encoder */
     __HAL_TIM_SET_COUNTER(&htim5, 0);
     __HAL_TIM_CLEAR_IT(&htim5, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
@@ -68,33 +68,33 @@ void motors_init(void)
     HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 
 
-    /* 马达 2 */
+    /* Motor 2 */
     motors[1]->set_pulse = motor2_set_pulse;
     __HAL_TIM_SET_COUNTER(&htim1, 0);
     __HAL_TIM_ENABLE(&htim1);
     __HAL_TIM_MOE_ENABLE(&htim1);
 
-    /* 编码器 */
+    /* Encoder */
     __HAL_TIM_SET_COUNTER(&htim2, 0);
     __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE(&htim2);
     HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
-    /* 马达 3 */
+    /* Motor 3 */
     motors[2]->set_pulse = motor3_set_pulse;
     __HAL_TIM_SET_COUNTER(&htim9, 0);
     __HAL_TIM_ENABLE(&htim9);
     __HAL_TIM_MOE_ENABLE(&htim9);
 
-    /* 编码器 */
+    /* Encoder */
     __HAL_TIM_SET_COUNTER(&htim4, 0);
     __HAL_TIM_CLEAR_IT(&htim4, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim4, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE(&htim4);
     HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
 
-    /* 马达 4 */
+    /* Motor 4 */
     motors[3]->set_pulse = motor4_set_pulse;
     __HAL_TIM_SET_COUNTER(&htim10, 0);
     __HAL_TIM_SET_COUNTER(&htim11, 0);
@@ -103,7 +103,7 @@ void motors_init(void)
     __HAL_TIM_MOE_ENABLE(&htim10);
     __HAL_TIM_MOE_ENABLE(&htim11);
 
-    /* 编码器 */
+    /* Encoder */
     __HAL_TIM_SET_COUNTER(&htim3, 0);
     __HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
@@ -111,7 +111,7 @@ void motors_init(void)
     HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
 
 
-    // 测速更新定时器
+    // Speed ​​update timer
     __HAL_TIM_SET_COUNTER(&htim7, 0);
     __HAL_TIM_CLEAR_IT(&htim7, TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim7, TIM_IT_UPDATE);

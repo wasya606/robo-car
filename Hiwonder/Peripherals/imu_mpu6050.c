@@ -1,7 +1,7 @@
 /**
  * @file imu_mpu6050.c
  * @author Lu Yongping (Lucas@hiwonder.com)
- * @brief mpu6050驱动的实现
+ * @brief Implementation of the mpu6050 driver
  * @version 0.1
  * @date 2023-05-08
  *
@@ -21,18 +21,19 @@
 */
 
 /**
-    * @brief 设置mpu6050陀螺仪传感器满量程范围
-    * @param self mpu6050对象实例指针
+    * @brief Set the full-scale range of the mpu6050 gyroscope sensor
+    * @param self Pointer to the mpu6050 object instance
     * @param fsr @li 0 ±250dps
     *            @li 1 ±500dps
     *            @li 2 ±1000dps
     *            @li 3 ±2000dps
-    * @retval  0 设置成功
-    * @retval !=0 设置失败
+    * @retval  0 Success
+    * @retval !=0 Failure
     */
 int mpu6050_set_gyro_fsr(MPU6050ObjectTypeDef *self, uint32_t fsr)
 {
-    /* 无论量程多少输出数值都是16位有符号数，根据量程确定每1°对应的数值是多少(查芯片手册) */
+    /* Regardless of the range, the output value is a 16-bit signed number.
+       The range determines how many values correspond to 1 degree (refer to the chip manual). */
     switch(fsr) {
     case MPU6050_GYRO_FSR_250DPS:
         self->gyro_sf = 131.0f;
@@ -53,15 +54,15 @@ int mpu6050_set_gyro_fsr(MPU6050ObjectTypeDef *self, uint32_t fsr)
 }
 
 /**
-* @brief 设置mpu6050加速度传感器满量程范围
-    * @param self mpu6050对象实例指针
-    * @param fsr @li 0 ±2g
-    *            @li 1 ±4g
-    *            @li 2 ±8g
-    *            @li 3 ±16g
-    * @retval  0 设置成功
-    * @retval !=0 设置失败
-    */
+* @brief Set the full-scale range of the mpu6050 accelerometer sensor
+* @param self Pointer to the mpu6050 object instance
+* @param fsr @li 0 ±2g
+*            @li 1 ±4g
+*            @li 2 ±8g
+*            @li 3 ±16g
+* @retval  0 Success
+* @retval !=0 Failure
+*/
 int mpu6050_set_accel_fsr(MPU6050ObjectTypeDef *self, uint32_t fsr)
 {
     switch(fsr) {
@@ -84,11 +85,11 @@ int mpu6050_set_accel_fsr(MPU6050ObjectTypeDef *self, uint32_t fsr)
 }
 
 /**
-* @brief 设置mpu6050的数字低通滤波器
-* @param self mpu6050对象实例指针
-* @param lpf 数字低通滤波器频率(Hz)
-* @retval 0 设置成功
-* @retval !=0 设置失败
+* @brief Set the mpu6050 digital low-pass filter
+* @param self Pointer to the mpu6050 object instance
+* @param lpf Digital low-pass filter frequency (Hz)
+* @retval 0 Success
+* @retval !=0 Failure
 */
 int mpu6050_set_lpf(MPU6050ObjectTypeDef *self, uint32_t lpf)
 {
@@ -110,11 +111,11 @@ int mpu6050_set_lpf(MPU6050ObjectTypeDef *self, uint32_t lpf)
 }
 
 /**
-* @brief 设置mpu6050采样率
-* @param self mpu6050对象实例指针
-* @param rate 新的采样率 4~1000(Hz)
-* @retval 0 设置成功
-* @retval != 设置失败
+* @brief Set the MPU6050 sampling rate
+* @param self Pointer to the MPU6050 object instance
+* @param rate New sampling rate between 4~1000 (Hz)
+* @retval 0 Success
+* @retval != Failure
 */
 int mpu6050_set_rate(MPU6050ObjectTypeDef *self, uint32_t rate)
 {
@@ -127,22 +128,22 @@ int mpu6050_set_rate(MPU6050ObjectTypeDef *self, uint32_t rate)
     }
     data = 1000 / rate - 1;
 
-    if(self->i2c_write_byte_to_mem(self, MPU6050_SMPLRT_DIV, data) != 0) { // 设置采样率
+    if(self->i2c_write_byte_to_mem(self, MPU6050_SMPLRT_DIV, data) != 0) { // Set the sampling rate
         return -2;
     }
 
-    if(mpu6050_set_lpf(self, rate / 2) != 0) { // 将数字低通滤波器设为采样率的一半
+    if(mpu6050_set_lpf(self, rate / 2) != 0) { // Set the digital low-pass filter to half the sampling rate
         return -1;
     }
     return 0;
 }
 
 /**
-* @brief 读取mpu6050温度传感器数值
-* @param self mpu6050对象实例指针
-* @param temp 温度结果指针
-* @retval 0 读取成功
-* @retval !=0 读取失败
+* @brief Read the MPU6050 temperature sensor value
+* @param self Pointer to the MPU6050 object instance
+* @param temp Pointer to store the temperature result
+* @retval 0 Success
+* @retval !=0 Failure
 */
 int mpu6050_get_temperature(MPU6050ObjectTypeDef *self, float *temp)
 {
@@ -158,13 +159,13 @@ int mpu6050_get_temperature(MPU6050ObjectTypeDef *self, float *temp)
 }
 
 /**
-* @brief 读取mpu6050加速度传感器数值
-* @param self mpu6050对象实例指针
-* @param x x轴结果存储指针
-* @param y y轴结果存储指针
-* @param z z轴结果存储指针
-* @retval 0 读取成功
-* @retval != 读取失败
+* @brief Read MPU6050 accelerometer values
+* @param self Pointer to the MPU6050 object instance
+* @param x Pointer to store the X-axis result
+* @param y Pointer to store the Y-axis result
+* @param z Pointer to store the Z-axis result
+* @retval 0 Success
+* @retval != Failure
 */
 int mpu6050_get_accel(MPU6050ObjectTypeDef *self, float *x, float *y, float *z)
 {
@@ -182,13 +183,13 @@ int mpu6050_get_accel(MPU6050ObjectTypeDef *self, float *x, float *y, float *z)
 }
 
 /**
-* @brief 读取mpu6050陀螺仪数值
-* @param self mpu6050对象实例指针
-* @param gx x轴结果存储指针
-* @param gy y轴结果存储指针
-* @param gz z轴结果存储指针
-* @retval 0 读取成功
-* @retval != 读取失败
+* @brief Read MPU6050 gyroscope values
+* @param self Pointer to the MPU6050 object instance
+* @param gx Pointer to store the X-axis result
+* @param gy Pointer to store the Y-axis result
+* @param gz Pointer to store the Z-axis result
+* @retval 0 Success
+* @retval != Failure
 */
 int mpu6050_get_gyro(MPU6050ObjectTypeDef *self, float *gx, float *gy, float *gz)
 {
@@ -207,12 +208,13 @@ int mpu6050_get_gyro(MPU6050ObjectTypeDef *self, float *gx, float *gy, float *gz
 }
 
 /**
-* @brief 读取mpu6050 加速度、温度、陀螺仪数值
-* @param self mpu6050对象实例指针
-* @param accel xyz三轴加速度结果存储指针
-* @param gyro  xyz三轴角速度结果存储指针
-* @retval 0 读取成功
-* @retval !=0 读取失败
+* @brief Read MPU6050 accelerometer, temperature, and gyroscope values
+* @param self Pointer to the MPU6050 object instance
+* @param accel Pointer to store XYZ-axis accelerometer results
+* @param temp Pointer to store the temperature result
+* @param gyro Pointer to store XYZ-axis gyroscope results
+* @retval 0 Success
+* @retval !=0 Failure
 */
 int mpu6050_get_all(MPU6050ObjectTypeDef *self, float *accel, float *temp, float *gyro)
 {
@@ -240,39 +242,38 @@ int mpu6050_get_all(MPU6050ObjectTypeDef *self, float *accel, float *temp, float
     return 0;
 }
 
-
 /**
-* @brief 复位mpu6050设备
-* @param self mpu6050对象实例指针
+* @brief Reset the MPU6050 device
+* @param self Pointer to the MPU6050 object instance
 * @retval None
 */
 static void export_mpu6050_reset(IMU_ObjectTypeDef *self_base)
 {
-	MPU6050ObjectTypeDef *self = (MPU6050ObjectTypeDef*)self_base;
-    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x80); // 复位mpu6050
-    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x80); // 复位mpu6050
+    MPU6050ObjectTypeDef *self = (MPU6050ObjectTypeDef*)self_base;
+    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x80); // Reset MPU6050
+    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x80); // Reset MPU6050
     self->sleep_ms(50);
-    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x00); // 唤醒mpu6050
-    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x00); // 唤醒mpu6050
+    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x00); // Wake up MPU6050
+    self->i2c_write_byte_to_mem(self, MPU6050_PWR_MGMT_1, 0x00); // Wake up MPU6050
 
-    mpu6050_set_accel_fsr(self, MPU6050_ACCEL_FSR_4G); // 设置加速度量程为±4G
-    mpu6050_set_gyro_fsr(self, MPU6050_GYRO_FSR_2000DPS); // 设置角速度量程为±2000°/s
+    mpu6050_set_accel_fsr(self, MPU6050_ACCEL_FSR_4G); // Set accelerometer range to ±4G
+    mpu6050_set_gyro_fsr(self, MPU6050_GYRO_FSR_2000DPS); // Set gyroscope range to ±2000°/s
 
-    self->i2c_write_byte_to_mem(self, MPU6050_INT_EN_REG, 0x00); //关闭中断
-    self->i2c_write_byte_to_mem(self, MPU6050_USER_CTRL, 0x00);  // 关闭I2C主模式
-    self->i2c_write_byte_to_mem(self, MPU6050_FIFO_EN_REG, 0x00); // 关闭FIFO
-    self->i2c_write_byte_to_mem(self, MPU6050_INT_PIN_CFG, 0x00); // 中断为高电平触发
-    mpu6050_set_rate(self, 100); // 设置采样率为100SPS
-    self->i2c_write_byte_to_mem(self, MPU6050_INT_EN_REG, 0x01); // 开启数据就绪中断
+    self->i2c_write_byte_to_mem(self, MPU6050_INT_EN_REG, 0x00); // Disable interrupt
+    self->i2c_write_byte_to_mem(self, MPU6050_USER_CTRL, 0x00);  // Disable I2C master mode
+    self->i2c_write_byte_to_mem(self, MPU6050_FIFO_EN_REG, 0x00); // Disable FIFO
+    self->i2c_write_byte_to_mem(self, MPU6050_INT_PIN_CFG, 0x00); // Interrupt triggered by high level
+    mpu6050_set_rate(self, 100); // Set sampling rate to 100SPS
+    self->i2c_write_byte_to_mem(self, MPU6050_INT_EN_REG, 0x01); // Enable data ready interrupt
 }
 
 /**
-* @brief 设置mpu6050 FIFO 中断开关
-* @param self mpu6050对象实例指针
-* @param enable @li true 开启FIFO中断
-*               @li false 关闭fifo中断
-* @retval 0 设置成功
-* @retval !=0 设置失败
+* @brief Configure MPU6050 FIFO interrupt
+* @param self Pointer to the MPU6050 object instance
+* @param enable @li true Enable FIFO interrupt
+*               @li false Disable FIFO interrupt
+* @retval 0 Success
+* @retval !=0 Failure
 */
 int mpu6050_enable_int(MPU6050ObjectTypeDef *self, bool enable)
 {
@@ -290,15 +291,15 @@ int mpu6050_enable_int(MPU6050ObjectTypeDef *self, bool enable)
 
 
 /**
-* @brief 从mpu6050读取所有传感器数值并更新实例成员
-* @param self_ mpu6050对象实例指针
-* @retval 0 更新成功
-* @retval !=0 更新失败
+* @brief Read all sensor values from MPU6050 and update instance members
+* @param self_ Pointer to the MPU6050 object instance
+* @retval 0 Update successful
+* @retval !=0 Update failed
 */
 static int export_mpu6050_update(IMU_ObjectTypeDef *self_base)
 {
-	MPU6050ObjectTypeDef *self = (MPU6050ObjectTypeDef*)self_base;
-    //LL_GPIO_SetOutputPin(LED_SYS_GPIO_Port, LED_SYS_Pin); // 测量采集计算时间上升沿
+    MPU6050ObjectTypeDef *self = (MPU6050ObjectTypeDef*)self_base;
+    //LL_GPIO_SetOutputPin(LED_SYS_GPIO_Port, LED_SYS_Pin); // Measure the rising edge of the data collection and calculation time
     if(mpu6050_get_all(self, self->accel, &self->temperature, self->gyro) != 0) {
         return -1;
     }
@@ -312,34 +313,51 @@ static int export_mpu6050_update(IMU_ObjectTypeDef *self_base)
     FusionAhrsUpdateNoMagnetometer(&self->ahrs, gyroscope, accelerometer, 0.01);
     const FusionQuaternion quat = FusionAhrsGetQuaternion(&self->ahrs);
     const FusionEuler euler = FusionQuaternionToEuler(quat);
+    //self->linearAcceleration = FusionAhrsGetLinearAcceleration(&self->ahrs);
     memcpy(&self->quat, &quat, sizeof(FusionQuaternion));
     memcpy(&self->euler, &euler, sizeof(FusionEuler));
-    //LL_GPIO_ResetOutputPin(LED_SYS_GPIO_Port, LED_SYS_Pin); // 测量采集计算时间下降沿
+    //LL_GPIO_ResetOutputPin(LED_SYS_GPIO_Port, LED_SYS_Pin); // Measure the falling edge of the data collection and calculation time
 //    printf("Roll %0.1f, Pitch %0.1f, Yaw %0.1f\n", euler.angle.roll, euler.angle.pitch, euler.angle.yaw);
     return 0;
 }
 
-
+/**
+* @brief Get Euler angles from MPU6050
+* @param self Pointer to the IMU object instance
+* @param rpy Pointer to store the Roll, Pitch, and Yaw angles
+* @retval 0 Success
+*/
 int export_mpu6050_get_euler(IMU_ObjectTypeDef *self, float *rpy)
 {
-	memcpy(rpy, &((MPU6050ObjectTypeDef*)self)->euler, sizeof(FusionEuler));
-	return 0;
-}
-
-
-int export_mpu6050_get_quat(IMU_ObjectTypeDef *self, float *quat)
-{
-	memcpy(quat, &((MPU6050ObjectTypeDef*)self)->quat, sizeof(FusionQuaternion));
-	return 0;
+    memcpy(rpy, &((MPU6050ObjectTypeDef*)self)->euler, sizeof(FusionEuler));
+    return 0;
 }
 
 /**
-  * @brief 初始化mpu6050对象内存
-  * @param obj 需要初始化内对象指针
-  * @param dev_addr 器件地址
-  * @retval None
-  *
+* @brief Get quaternion from MPU6050
+* @param self Pointer to the IMU object instance
+* @param quat Pointer to store the quaternion values
+* @retval 0 Success
 */
+int export_mpu6050_get_quat(IMU_ObjectTypeDef *self, float *quat)
+{
+    memcpy(quat, &((MPU6050ObjectTypeDef*)self)->quat, sizeof(FusionQuaternion));
+    return 0;
+}
+
+void mpu6050_data_ready_read(IMU_ObjectTypeDef *self)
+{
+    const MPU6050ObjectTypeDef* imuDev = (MPU6050ObjectTypeDef*)self;
+    printf("---- Accel\tX: %f,\tY: %f,\tZ: %f\n", imuDev->accel[0], imuDev->accel[1], imuDev->accel[2]);
+    printf("~~~~ Gyro\tX: %f,\tY: %f,\tZ: %f\n\n", imuDev->gyro[0], imuDev->gyro[1], imuDev->gyro[2]);
+}
+
+/**
+  * @brief Initialize MPU6050 object memory
+  * @param obj Pointer to the object to be initialized
+  * @param dev_addr Device address
+  * @retval None
+  */
 void mpu6050_object_init(MPU6050ObjectTypeDef *obj, uint8_t dev_addr)
 {
     memset(obj, 0, sizeof(MPU6050ObjectTypeDef));
@@ -348,8 +366,9 @@ void mpu6050_object_init(MPU6050ObjectTypeDef *obj, uint8_t dev_addr)
     obj->dev_addr = dev_addr;
     obj->base.reset = export_mpu6050_reset;
     obj->base.update = export_mpu6050_update;
-	obj->base.get_euler = export_mpu6050_get_euler;
-	obj->base.get_quat = export_mpu6050_get_quat;
+    obj->base.get_euler = export_mpu6050_get_euler;
+    obj->base.get_quat = export_mpu6050_get_quat;
+    obj->base.on_data_ready_read = mpu6050_data_ready_read;
 }
 
 /** @} */

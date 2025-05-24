@@ -36,8 +36,8 @@ void setup_scr_screen_startup(lv_ui *ui){
 	lv_style_set_image_recolor_opa(&style_screen_startup_img_1_main, LV_STATE_DEFAULT, 0);
 	lv_style_set_image_opa(&style_screen_startup_img_1_main, LV_STATE_DEFAULT, 255);
 	lv_obj_add_style(ui->screen_startup_img_1, LV_IMG_PART_MAIN, &style_screen_startup_img_1_main);
-	lv_obj_set_pos(ui->screen_startup_img_1, 6, 31);
-	lv_obj_set_size(ui->screen_startup_img_1, 148, 18);
+	lv_obj_set_pos(ui->screen_startup_img_1, 5, 40);
+	lv_obj_set_size(ui->screen_startup_img_1, 110, 16);
 	lv_obj_set_click(ui->screen_startup_img_1, true);
 	lv_img_set_src(ui->screen_startup_img_1,&_logo18_148x18);
 	lv_img_set_pivot(ui->screen_startup_img_1, 50,50);

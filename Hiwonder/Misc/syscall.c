@@ -1,7 +1,7 @@
 /**
  * @file syscall.c
  * @author Lu Yongping (Lucas@hiwonder.com)
- * @brief 标准库桩函数的重定向
+ * @brief Redirection of standard library stub functions
  * @version 0.1
  * @date 2023-05-12
  *
@@ -14,7 +14,7 @@
 #include "usart.h"
 #include "global_conf.h"
 
-#if (0 == ENABLE_DEBUG_UART)	//使用JLink打印日志
+#if (0 == ENABLE_DEBUG_UART)	//Printing logs using JLink
 #include "SEGGER_RTT.h"
 #endif
 
@@ -24,7 +24,7 @@
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE* f)
 #endif /* __GNUC__ */
 
-#pragma import(__use_no_semihosting) /* 以下代码不适用半主机模式 */
+#pragma import(__use_no_semihosting) /* The following code does not apply to semihost mode */
 
 void _sys_exit(int x)
 {
@@ -41,12 +41,12 @@ FILE __stdout;
 
 
 PUTCHAR_PROTOTYPE {
-#if (1 == ENABLE_DEBUG_UART)	//使用JLink打印日志
-    HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, 0xFFFF); /* 重定向到 UART1 打印 */
+#if (1 == ENABLE_DEBUG_UART)	//Printing logs to UART
+    HAL_UART_Transmit(DEBUG_UART_REFERENCE, (uint8_t*)&ch, 1, 0xFFFF); /* Redirect to debug UART for printing */
 #endif
 	
-#if (0 == ENABLE_DEBUG_UART)	//使用JLink打印日志
-    SEGGER_RTT_Write(0, &ch, 1);   /* 重定向到 JLINK RTT 打印, 使用RTT时需要先初始化RTT */
+#if (0 == ENABLE_DEBUG_UART)	//Printing logs using JLink
+    SEGGER_RTT_Write(0, &ch, 1);   /* Redirect to JLINK RTT printing. When using RTT, you need to initialize RTT first. */
 #endif
 	
     return (ch);

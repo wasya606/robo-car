@@ -82,13 +82,65 @@ ChassisTypeDef *chassis = (ChassisTypeDef*)&jetauto;
 
 static void ackermann_set_speed(const float speed_left, const float speed_right)
 {
-    encoder_motor_set_speed(motors[MOTOR_RIGHT], speed_right);
-    encoder_motor_set_speed(motors[MOTOR_LEFT], -speed_left);
+    switch (chassis->chassis_type)
+    {
+    case CHASSIS_TYPE_MINACKER:
+        encoder_motor_set_speed(motors[MOTOR_RIGHT], speed_right);
+        encoder_motor_set_speed(motors[MOTOR_LEFT], -speed_left);
+        break;
+    case CHASSIS_TYPE_JETACKER:
+        encoder_motor_set_speed(motors[MOTOR_RIGHT], -speed_right);
+        encoder_motor_set_speed(motors[MOTOR_LEFT], speed_left);
+    default:
+        break;
+    }
+}
+
+static void ackermann_set_helm_angle(const float angle)
+{
+    uint16_t position = 0;
+    switch (chassis->chassis_type)
+    {
+    case CHASSIS_TYPE_MINACKER:
+        position = 1500 - 200 * (angle > MINACKER_MAX_HELM_ANGLE ? MINACKER_MAX_HELM_ANGLE :
+                                 angle < -MINACKER_MAX_HELM_ANGLE ? -MINACKER_MAX_HELM_ANGLE : angle) / 18;
+        break;
+    case CHASSIS_TYPE_JETACKER:
+        position = 500 + 300 * (angle > 30 ? 30 : angle < -30 ? -30 : angle) / 72;
+    default:
+        break;
+    }
+    pwm_servo_set_position(pwm_servos[0], position, 100);
 }
 
 static int ackermann_current_helm_position()
 {
-    return pwm_servos[0]->current_duty - 1500;
+    switch (chassis->chassis_type)
+    {
+    case CHASSIS_TYPE_MINACKER:
+        return pwm_servos[0]->current_duty - 1500;
+    case CHASSIS_TYPE_JETACKER:
+        return pwm_servos[0]->current_duty - 500;
+    default:
+        break;
+    }
+    
+    return 0;
+}
+
+static float ackermann_helm_angle()
+{
+    switch (chassis->chassis_type)
+    {
+    case CHASSIS_TYPE_MINACKER:
+        return (1500 - pwm_servos[0]->current_duty) * 18.0f / 200.0f;
+    case CHASSIS_TYPE_JETACKER:
+        return (pwm_servos[0]->current_duty - 500) * 72.0f / 300.0f;
+    default:
+        break;
+    }
+    
+    return 0;
 }
 
 static float ackermann_current_speed()
@@ -160,7 +212,9 @@ void chassis_init(void)
     jetacker.target_speed = 0;
     jetacker.set_motors = jetacker_set_motors;
     jetacker.set_speed = ackermann_set_speed;
-    jetacker.get_current_helm_position = ackermann_current_helm_position;
+    jetacker.set_helm_angle = ackermann_set_helm_angle;
+    jetacker.get_helm_position = ackermann_current_helm_position;
+    jetacker.get_helm_angle = ackermann_helm_angle;
     jetacker.get_current_speed = ackermann_current_speed;
     jetacker.get_motor_speed = ackermann_motor_speed;
 	ackermann_chassis_object_init(&jetacker); //结构体初始化放后面
@@ -173,7 +227,9 @@ void chassis_init(void)
     minacker.target_speed = 0;
     minacker.set_motors = minacker_set_motors;
     minacker.set_speed = ackermann_set_speed;
-    minacker.get_current_helm_position = ackermann_current_helm_position;
+    minacker.set_helm_angle = ackermann_set_helm_angle;
+    minacker.get_helm_position = ackermann_current_helm_position;
+    minacker.get_helm_angle = ackermann_helm_angle;
     minacker.get_current_speed = ackermann_current_speed;
     minacker.get_motor_speed = ackermann_motor_speed;
 	ackermann_chassis_object_init(&minacker); //结构体初始化放后面

@@ -1,7 +1,7 @@
 /**
  * @file imu_mpu6050.h
  * @author Lu Yongping (Lucas@hiwonder.com)
- * @brief mpu6050的寄存器列表、函数、数据结构等
+ * @brief MPU6050 register list, functions, data structures, etc.
  * @version 0.1
  * @date 2023-05-08
  *
@@ -23,67 +23,63 @@
 *   @{
 */
 
-
 /**
-*@defgroup MPU6050常量
+*@defgroup MPU6050 Constants
 * @{
 */
-#define MPU6050_GYRO_FSR_250DPS  0  /**< MPU6050 陀螺仪量程为 ±250°/s */
-#define MPU6050_GYRO_FSR_500DPS  1  /**< MPU6050 陀螺仪量程为 ±500°/s */
-#define MPU6050_GYRO_FSR_1000DPS 2  /**< MPU6050 陀螺仪量程为 ±1000°/s */
-#define MPU6050_GYRO_FSR_2000DPS 3  /**< MPU6050 陀螺仪量程为 ±2000°/s */
+#define MPU6050_GYRO_FSR_250DPS  0  /**< MPU6050 gyroscope range ±250°/s */
+#define MPU6050_GYRO_FSR_500DPS  1  /**< MPU6050 gyroscope range ±500°/s */
+#define MPU6050_GYRO_FSR_1000DPS 2  /**< MPU6050 gyroscope range ±1000°/s */
+#define MPU6050_GYRO_FSR_2000DPS 3  /**< MPU6050 gyroscope range ±2000°/s */
 
-#define MPU6050_ACCEL_FSR_2G       0  /**< MPU6050 加速度量程为 ±2g */
-#define MPU6050_ACCEL_FSR_4G       1  /**< MPU6050 加速度量程为 ±4g */
-#define MPU6050_ACCEL_FSR_8G       2  /**< MPU6050 加速度量程为 ±8g */
-#define MPU6050_ACCEL_FSR_16G      3  /**< MPU6050 加速度量程为 ±16g */
+#define MPU6050_ACCEL_FSR_2G       0  /**< MPU6050 accelerometer range ±2g */
+#define MPU6050_ACCEL_FSR_4G       1  /**< MPU6050 accelerometer range ±4g */
+#define MPU6050_ACCEL_FSR_8G       2  /**< MPU6050 accelerometer range ±8g */
+#define MPU6050_ACCEL_FSR_16G      3  /**< MPU6050 accelerometer range ±16g */
 /** @} */
 
 /**
-*@defgroup MPU6050器件地址
+*@defgroup MPU6050 Device Addresses
 * @{
 */
-#define MPU6050_DEV_ADDR_1 0x68 /**< mpu6050器件地址 */
-#define MPU6050_DEV_ADDR_2 0x69 /**< mpu6050器件地址 */
+#define MPU6050_DEV_ADDR_1 0x68 /**< MPU6050 device address */
+#define MPU6050_DEV_ADDR_2 0x69 /**< MPU6050 device address */
 /** @} */
 
 /**
-* @defgroup MPU6050寄存器地址
+* @defgroup MPU6050 Register Addresses
 * @{
 */
-#define MPU6050_SMPLRT_DIV   0x19  /**< 陀螺仪采样率，典型值：0x07(125Hz) */
-#define MPU6050_CONFIG       0x1A  /**< 低通滤波频率，典型值：0x06(5Hz)  */
-#define MPU6050_GYRO_CONFIG  0x1B  /**< 陀螺仪自检及测量范围，典型值：0x18(不自检，2000deg/s) */
-#define MPU6050_ACCEL_CONFIG 0x1C  /**< 加速计自检、测量范围及高通滤波频率，典型值：0x01(不自检，2G，5Hz) */
+#define MPU6050_SMPLRT_DIV   0x19  /**< Gyroscope sample rate, typical: 0x07 (125Hz) */
+#define MPU6050_CONFIG       0x1A  /**< Low-pass filter frequency, typical: 0x06 (5Hz) */
+#define MPU6050_GYRO_CONFIG  0x1B  /**< Gyroscope self-test and range, typical: 0x18 (no self-test, 2000deg/s) */
+#define MPU6050_ACCEL_CONFIG 0x1C  /**< Accelerometer self-test, range, and high-pass filter frequency, typical: 0x01 (no self-test, 2G, 5Hz) */
 
-#define MPU6050_ACCEL_XOUT_H 0x3B  /**< X轴加速度高位数据 */
-#define MPU6050_ACCEL_XOUT_L 0x3C  /**< X轴加速度低位数据 */
-#define MPU6050_ACCEL_YOUT_H 0x3D  /**< Y轴加速度高位数据 */
-#define MPU6050_ACCEL_YOUT_L 0x3E  /**< Y轴加速度低位数据 */
-#define MPU6050_ACCEL_ZOUT_H 0x3F  /**< Z轴加速度高位数据 */
-#define MPU6050_ACCEL_ZOUT_L 0x40  /**< Z轴加速度低位数据 */
+#define MPU6050_ACCEL_XOUT_H 0x3B  /**< High byte of X-axis acceleration */
+#define MPU6050_ACCEL_XOUT_L 0x3C  /**< Low byte of X-axis acceleration */
+#define MPU6050_ACCEL_YOUT_H 0x3D  /**< High byte of Y-axis acceleration */
+#define MPU6050_ACCEL_YOUT_L 0x3E  /**< Low byte of Y-axis acceleration */
+#define MPU6050_ACCEL_ZOUT_H 0x3F  /**< High byte of Z-axis acceleration */
+#define MPU6050_ACCEL_ZOUT_L 0x40  /**< Low byte of Z-axis acceleration */
 
-#define MPU6050_TEMP_OUT_H 0x41  /**< 传感器温度高位数据 */
-#define MPU6050_TEMP_OUT_L 0x42  /**< 传感器温度低位数据 */
+#define MPU6050_TEMP_OUT_H 0x41  /**< High byte of sensor temperature */
+#define MPU6050_TEMP_OUT_L 0x42  /**< Low byte of sensor temperature */
 
-#define MPU6050_GYRO_XOUT_H 0x43  /**< X轴陀螺仪高位数据 */
-#define MPU6050_GYRO_XOUT_L 0x44  /**< X轴陀螺仪低位数据 */
-#define MPU6050_GYRO_YOUT_H 0x45  /**< Y轴陀螺仪高位数据 */
-#define MPU6050_GYRO_YOUT_L 0x46  /**< Y轴陀螺仪低位数据 */
-#define MPU6050_GYRO_ZOUT_H 0x47  /**< Z轴陀螺仪高位数据 */
-#define MPU6050_GYRO_ZOUT_L 0x48  /**< Z轴陀螺仪低位数据 */
+#define MPU6050_GYRO_XOUT_H 0x43  /**< High byte of X-axis gyroscope */
+#define MPU6050_GYRO_XOUT_L 0x44  /**< Low byte of X-axis gyroscope */
+#define MPU6050_GYRO_YOUT_H 0x45  /**< High byte of Y-axis gyroscope */
+#define MPU6050_GYRO_YOUT_L 0x46  /**< Low byte of Y-axis gyroscope */
+#define MPU6050_GYRO_ZOUT_H 0x47  /**< High byte of Z-axis gyroscope */
+#define MPU6050_GYRO_ZOUT_L 0x48  /**< Low byte of Z-axis gyroscope */
 
-#define MPU6050_FIFO_EN_REG 0x23 /**< FIFO使能寄存器 */
-#define MPU6050_USER_CTRL   0x6A /**< FIFO 控制寄存器 */
-#define MPU6050_PWR_MGMT_1 0x6B  /**< 电源管理，典型值：0x00(正常启用) */
-#define MPU6050_WHO_AM_I 0x75    /**< IIC地址寄存器(默认数值0x68，只读) */
-#define MPU6050_INT_EN_REG  0x38 /**< 中断使能寄存器 */
+#define MPU6050_FIFO_EN_REG 0x23 /**< FIFO enable register */
+#define MPU6050_USER_CTRL   0x6A /**< FIFO control register */
+#define MPU6050_PWR_MGMT_1 0x6B  /**< Power management, typical: 0x00 (normal operation) */
+#define MPU6050_WHO_AM_I 0x75    /**< IIC address register (default: 0x68, read-only) */
+#define MPU6050_INT_EN_REG  0x38 /**< Interrupt enable register */
 
-#define MPU6050_INT_PIN_CFG 0x37 /**< 中断引脚配置寄存器 */
-
-
+#define MPU6050_INT_PIN_CFG 0x37 /**< Interrupt pin configuration register */
 /** @} */
-
 
 typedef struct MPU6050Object  MPU6050ObjectTypeDef;
 struct MPU6050Object {
@@ -92,49 +88,50 @@ struct MPU6050Object {
     FusionAhrs ahrs;
     FusionEuler euler;
     FusionQuaternion quat;
-    FusionOffset offset; /**< 陀螺仪零偏调整器，当连续上时间静止时，自动校正陀螺仪零偏 */
+    FusionVector linearAcceleration;
+    FusionOffset offset; /**< Gyroscope bias corrector, automatically corrects gyroscope bias when stationary for an extended time */
 
-    FusionMatrix accel_misalignment; /**< 加速度传感器轴向偏差 */
-    FusionMatrix accel_sensitivity; /**< 加速度传感器刻度缩放因子 */
-    FusionMatrix accel_offset; /**< 加速度传感器零偏 */
+    FusionMatrix accel_misalignment; /**< Accelerometer axis misalignment */
+    FusionMatrix accel_sensitivity; /**< Accelerometer scale factor */
+    FusionMatrix accel_offset; /**< Accelerometer bias */
 
-    FusionMatrix gyro_misalignment; /**< 陀螺仪轴向偏差 */
-    FusionMatrix gyro_sensitivity; /**< 陀螺仪刻度缩放因子 */
-    FusionMatrix gyro_offset; /**< 陀螺仪零偏 */
+    FusionMatrix gyro_misalignment; /**< Gyroscope axis misalignment */
+    FusionMatrix gyro_sensitivity; /**< Gyroscope scale factor */
+    FusionMatrix gyro_offset; /**< Gyroscope bias */
 
-    uint8_t dev_addr; /**< 本实例对应的器件地址 */
-    bool data_ready; /**< 数据就绪？外部中断里面 */
-    float gyro_sf; /**< 陀螺仪数值缩放因子(每1°对应的数值)*/
-    float accel_sf;  /**< 加速度缩放因子(每1g对应的数值) */
-    float accel[3]; /**< 最后一次更新到的三轴加速度 */
-    float gyro[3]; /**< 最后一次更新到的三轴角速度 */
-    float temperature; /**< 最后一个更新到的器件温度 */
+    uint8_t dev_addr; /**< Device address corresponding to this instance */
+    bool data_ready; /**< Data ready? From external interrupt */
+    float gyro_sf; /**< Gyroscope scaling factor (value per 1°) */
+    float accel_sf;  /**< Accelerometer scaling factor (value per 1g) */
+    float accel[3]; /**< Last updated 3-axis acceleration */
+    float gyro[3]; /**< Last updated 3-axis angular velocity */
+    float temperature; /**< Last updated device temperature */
 
     /**
-    * @brief 延时x毫秒
-    * @param ms 要延时的毫秒数
+    * @brief Delay for x milliseconds
+    * @param ms Number of milliseconds to delay
     */
     void (*sleep_ms)(uint32_t ms);
 
     /**
-     * @brief 向I2C设备指定寄存器写入数据
-    * @param self mpu6050对象示例指针
-    * @param reg_addr 要写入的寄存器起始地址
-    * @param len 要写入的寄存器个数
-    * @param data 要写入的数据指针
-    * @retval 0 读取成功
-        * @retval !=0 读取失败
+     * @brief Write data to the specified I2C device register
+    * @param self Pointer to MPU6050 object instance
+    * @param reg_addr Starting address of the register to write
+    * @param len Number of registers to write
+    * @param data Pointer to the data to write
+    * @retval 0 Success
+    * @retval !=0 Failure
     */
     int (*i2c_write_byte_to_mem)(MPU6050ObjectTypeDef *self, uint8_t reg_addr, uint8_t data);
 
     /**
-     * @brief 从I2C设备指定寄存器读取数据
-     * @param self mpu6050对象示例指针
-     * @param reg_addr 要读取的寄存器起始地址
-     * @param len 要读取的寄存器个数
-     * @param data 存放结果数据的指针
-     * @retval 0 读取成功
-     * @retval !=0 读取失败
+     * @brief Read data from the specified I2C device register
+     * @param self Pointer to MPU6050 object instance
+     * @param reg_addr Starting address of the register to read
+     * @param len Number of registers to read
+     * @param data Pointer to store the resulting data
+     * @retval 0 Success
+     * @retval !=0 Failure
     */
     int (*i2c_read_from_mem)(MPU6050ObjectTypeDef *self, uint8_t reg_addr, uint32_t len, uint8_t *data);
 };

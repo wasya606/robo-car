@@ -22,7 +22,9 @@ typedef struct {
     float target_speed;
 	void (*set_motors)(void *self, float rps_l, float rps_r, int position);
     void (*set_speed)(const float speed_left, const float speed_right);
-    int (*get_current_helm_position)();
+    void (*set_helm_angle)(const float angle);
+    float (*get_helm_angle)();
+    int (*get_helm_position)();
     float (*get_current_speed)();
     float (*get_motor_speed)(enum MotorPosition motor_position, enum MotorSpeedValueType speed_value_type);
 }AckermannChassisTypeDef;

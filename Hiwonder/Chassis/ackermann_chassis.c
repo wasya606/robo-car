@@ -60,7 +60,7 @@ void minacker_move(AckermannChassisTypeDef *self, float speed)
     self->target_speed = speed;
     float speed_left = speed;
     float speed_right = speed;
-    const int helm_position = self->get_current_helm_position();
+    const int helm_position = self->get_helm_position();
     if (helm_position != 0) {
         const float angle = - helm_position * PI / 2000;
         const float turn_radius = self->wheelbase / tan(angle);

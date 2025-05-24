@@ -61,3 +61,5 @@ MDK-ARM/EventRecorderStub.scvd
 MDK-ARM/RosRobotControllerM4.uvguix.*
 MDK-ARM/RTE/
 .mxproject
+
+.vscode/

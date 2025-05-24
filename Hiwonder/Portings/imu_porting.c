@@ -4,6 +4,7 @@
 #include "global_conf.h"
 #include "imu.h"
 #include "imu_mpu6050.h"
+#include "stm32f4xx_hal_exti.h"
 
 IMU_ObjectTypeDef *imus[1];
 
@@ -33,22 +34,39 @@ void imu_task_entry(void *argument)
 
     imus_init();
     imus[0]->reset(imus[0]);
-
-//    int imu_report_interval = 1;
-//    int count = 0;
-//    struct PacketReportIMU report;
+    
+    //float accelBuffer[3] = {0, 0, 0};
+    //float gyroBuffer[3] = {0, 0, 0};
+    //const uint8_t imu_report_interval = 1;
+    //uint8_t count = 0;
+    //struct PacketReportIMU report;
+    //IMU_ObjectTypeDef* imuDev = imus[0];
+    //MPU6050ObjectTypeDef* imuDev = (MPU6050ObjectTypeDef*)imus[0];
+    //imuDev->sleep_ms(500);
     for(;;) {
         osSemaphoreAcquire(mpu6050_data_readyHandle, osWaitForever);
         imus[0]->update(imus[0]);
-//        count += 1;
-//        if(count > imu_report_interval) {
-//            count = 0;
-//            report.quat.w = imu1.quat.element.w;
-//            report.quat.x = imu1.quat.element.x;
-//            report.quat.y = imu1.quat.element.y;
-//            report.quat.z = imu1.quat.element.z;
-//            packet_transmit(&packet_controller, PACKET_FUNC_IMU, &report, sizeof(struct PacketReportIMU));
-//        }
+        //vTaskDelay(pdMS_TO_TICKS(200));
+//        printf("---- Accel\tX: %f,\tY: %f,\tZ: %f\n", imuDev->accel[0], imuDev->accel[1], imuDev->accel[2]);
+//        printf("~~~~ Gyro\tX: %f,\tY: %f,\tZ: %f\n\n", imuDev->gyro[0], imuDev->gyro[1], imuDev->gyro[2]);
+
+//            if (imus[0]->update(imus[0]) == 0) {
+//                //printf("---- Accel\tX: %f,\tY: %f,\tZ: %f\n", imuDev->accel[0], imuDev->accel[1], imuDev->accel[2]);
+//                //printf("~~~~ Gyro\tX: %f,\tY: %f,\tZ: %f\n\n", imuDev->gyro[0], imuDev->gyro[1], imuDev->gyro[2]);
+//            }
+//            
+    //        count += 1;
+    //        if(count > imu_report_interval) {
+    //            count = 0;
+    //            report.quat.w = imu1.quat.element.w;
+    //            report.quat.x = imu1.quat.element.x;
+    //            report.quat.y = imu1.quat.element.y;
+    //            report.quat.z = imu1.quat.element.z;
+    //            packet_transmit(&packet_controller, PACKET_FUNC_IMU, &report, sizeof(struct PacketReportIMU));
+    //        }
+        //osSemaphoreRelease(mpu6050_data_readyHandle);
+        //vTaskDelay(pdMS_TO_TICKS(200));
+        //DelayMs(500);
     }
 }
 

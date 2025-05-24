@@ -107,6 +107,10 @@ void Error_Handler(void);
 #define PWM_SERVO_1_GPIO_Port GPIOA
 #define PWM_SERVO_2_Pin GPIO_PIN_12
 #define PWM_SERVO_2_GPIO_Port GPIOA
+#define HC_12_TX_Pin GPIO_PIN_10
+#define HC_12_TX_GPIO_Port GPIOC
+#define HC_12_RX_Pin GPIO_PIN_11
+#define HC_12_RX_GPIO_Port GPIOC
 #define SBUS_RX_Pin GPIO_PIN_2
 #define SBUS_RX_GPIO_Port GPIOD
 #define MOTOR_ENABLE_Pin GPIO_PIN_3

@@ -64,13 +64,13 @@ void gui_task_entry(void *arg)
     setup_scr_screen_sbus(&guider_ui);
 
     lv_event_send(guider_ui.screen_empty, LV_EVENT_CLICKED, NULL);
-		for(int i = 0; i < 180; ++i) {
-			lv_task_handler();
-			osDelay(10);
-		}
+    for(int i = 0; i < 180; ++i) {
+        lv_task_handler();
+        osDelay(10);
+    }
 		
     osTimerStart(lvgl_timerHandle, 20);
-    lv_event_send(guider_ui.screen_startup, LV_EVENT_CLICKED, NULL);
+    lv_event_send(guider_ui.screen_sys, LV_EVENT_CLICKED, NULL);
 
     void *event = NULL;
     uint8_t msg_prio = 0;

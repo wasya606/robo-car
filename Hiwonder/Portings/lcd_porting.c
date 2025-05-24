@@ -18,10 +18,10 @@ void lcds_init(void)
 {
     ST7735ObjectTypeDef *st7735 = LWMEM_CCM_MALLOC(sizeof(ST7735ObjectTypeDef));
     st7735_object_init(st7735);
-    st7735->base.height = 80;
-    st7735->base.width = 160;
+    st7735->base.height = 128;
+    st7735->base.width = 128;
     st7735->x_offset = 1;
-    st7735->y_offset = 26;
+    st7735->y_offset = 1;
     st7735->set_backlight = lcd1_set_blacklight;
     st7735->set_dc_cs = lcd1_set_dc_cs;
     st7735->set_res = lcd1_set_res;

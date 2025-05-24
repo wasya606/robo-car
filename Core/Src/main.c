@@ -15,20 +15,21 @@
   *                        opensource.org/licenses/BSD-3-Clause
   * 
   * ********************************************
-  *   main()函数，单片机入口函数 
+  *   main() function, microcontroller entry function
   * 
-  *   ! ! ! 注意
-  *   该工程使用了 FreeRTOS系统  
-  *   用户的入口函数在 Hiwonder/System文件夹中的app.c文件中的app_task_entry()线程任务�?   
-  *   �?要其他线程任务，则需创建其他线程（建议在STM32CubeMX软件中创建）
+  *   ! ! ! Notice
+  *   This project uses the FreeRTOS system
+  *   The user's entry function is in the app_task_entry() thread task in the app.c file in the Hiwonder/System folder.
+  *   If you need other thread tasks, you need to create other threads (it is recommended to create them in the STM32CubeMX software)
   *   
-  *   ! ! ! 注意
-  *   在CubeMX中创建的文件中，
-  *   用户程序与注�? 都需要写在以下注释的中间，才不会在使用CubeMX更改配置之后，导致用户程序被覆盖�? !!! 
-  *   (若不使用CubeMX软件，则可跳过该�?)
+  *   ! ! ! Notice
+  *   In the file created in CubeMX,
+  *   The user program and comments need to be written in the middle of the following comments to prevent the user program 
+  *   from being overwritten after changing the configuration using CubeMX. !!! 
+  *   (If you do not use CubeMX software, you can skip this step.)
   * 
   *   / * USER CODE BEGIN xxx * /
-  *   //用户程序
+  *   //User Programs
   *   / * USER CODE END xxx * /
   * 
   *   
@@ -97,9 +98,9 @@ static void MX_NVIC_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  //��־��ӡ���ܳ�ʼ��
+  //��־��ӡ���ܳ�ʼ��
   LOG_INIT();
-  lwmem_assignmem(lwmem_regions);  /* ��̬�ڴ��ʼ�� */
+  lwmem_assignmem(lwmem_regions);  /* ��̬�ڴ��ʼ�� */
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -115,9 +116,9 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-    //����IIC1
+    //����IIC1
     __HAL_RCC_I2C1_CLK_ENABLE();
-    //����DMA����
+    //����DMA����
     __HAL_RCC_DMA1_CLK_ENABLE();
   /* USER CODE END SysInit */
 
@@ -144,12 +145,14 @@ int main(void)
   MX_CRC_Init();
   MX_TIM12_Init();
   MX_ADC1_Init();
+  MX_UART4_Init();
+
   MX_CAN1_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  //��ӡ��Ϣ����printf()�������÷�һ�����ܹ����ݵȼ�����������־���
+  //��ӡ��Ϣ����printf()�������÷�һ�����ܹ����ݵȼ�����������־���
   LOG_DEBUG("Start...\r\n");
   /* USER CODE END 2 */
 

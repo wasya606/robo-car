@@ -59,6 +59,7 @@ typedef struct {
 #define MINACKER_CORRECITION_FACTOR 1.0 /* mm */
 #define MINACKER_SHAFT_LENGTH 170.0 /* mm */
 #define MINACKER_WHEELBASE  180.0 /* mm */
+#define MINACKER_MAX_HELM_ANGLE 47 // Degrees
 
 #endif
 

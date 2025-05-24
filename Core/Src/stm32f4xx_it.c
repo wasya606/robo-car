@@ -396,6 +396,7 @@ void EXTI15_10_IRQHandler(void)
     extern osSemaphoreId_t mpu6050_data_readyHandle;
     if(__HAL_GPIO_EXTI_GET_IT(IMU_ITR_Pin) != RESET) {
         __HAL_GPIO_EXTI_CLEAR_IT(IMU_ITR_Pin);
+        //imus[0]->on_data_ready_read(imus[0]);
         osSemaphoreRelease(mpu6050_data_readyHandle);
     }
   /* USER CODE END EXTI15_10_IRQn 0 */

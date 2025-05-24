@@ -55,7 +55,7 @@ void setup_scr_screen_sys(lv_ui *ui){
 
 	//Write codes screen_sys_label_volt
 	ui->screen_sys_label_volt = lv_label_create(ui->screen_sys, NULL);
-	lv_label_set_text(ui->screen_sys_label_volt, "电压:");
+	lv_label_set_text(ui->screen_sys_label_volt, "Voltage:");
 	lv_label_set_long_mode(ui->screen_sys_label_volt, LV_LABEL_LONG_BREAK);
 	lv_label_set_align(ui->screen_sys_label_volt, LV_LABEL_ALIGN_CENTER);
 
@@ -123,7 +123,7 @@ void setup_scr_screen_sys(lv_ui *ui){
 
 	//Write codes screen_sys_title
 	ui->screen_sys_title = lv_label_create(ui->screen_sys, NULL);
-	lv_label_set_text(ui->screen_sys_title, "系统状态");
+	lv_label_set_text(ui->screen_sys_title, "System status");
 	lv_label_set_long_mode(ui->screen_sys_title, LV_LABEL_LONG_BREAK);
 	lv_label_set_align(ui->screen_sys_title, LV_LABEL_ALIGN_CENTER);
 

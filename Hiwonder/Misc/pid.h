@@ -1,7 +1,7 @@
 /**
  * @file pid.h
  * @author Lu Yongping (Lucas@hiwonder.com)
- * @brief PID相关数据结构及方法声明
+ * @brief Declaration of PID-related data structures and methods
  * @version 0.1
  * @date 2023-07-12
  *
@@ -15,28 +15,28 @@
 #include <stdint.h>
 
 /**
-  * @brief PID 控制器结构体
+  * @brief PID controller structure
   *
   */
 typedef struct {
-	float set_point; /**< @brief 目标值 */
-	float kp;        /**< @brief 比例增益 */
-	float ki;        /**< @brief 积分增益 */
-	float kd;        /**< @brief 微分增益 */
-	
-	float previous_0_err; /**< @brief 上次误差 */
-	float previous_1_err; /**< @brief 上上次误差 */
-	
-	float output; /**< @brief PID输出 */
+    float set_point; /**< @brief Target value */
+    float kp;        /**< @brief Proportional gain */
+    float ki;        /**< @brief Integral gain */
+    float kd;        /**< @brief Derivative gain */
+    
+    float previous_0_err; /**< @brief Previous error */
+    float previous_1_err; /**< @brief Second-to-last error */
+    
+    float output; /**< @brief PID output */
 }PID_ControllerTypeDef;
 
 
 
 /**
- * @brief PID控制更新
- * @param self PID控制器对象指针
- * @param actual 当前的实际值
- * @param 距离上次更新的时间间隔
+ * @brief PID control update
+ * @param self Pointer to the PID controller object
+ * @param actual Current actual value
+ * @param time_delta Time interval since the last update
  * @retval None.
  */
 void pid_controller_update(PID_ControllerTypeDef *self, float actual, float time_delta);
@@ -44,11 +44,11 @@ void pid_controller_update(PID_ControllerTypeDef *self, float actual, float time
 
 
 /**
- * @brief 初始化PID控制器
- * @param self 要初始化的PID控制器指针
- * @param kp 比例增益
- * @param ki 积分增益
- * @param kd 微分增益
+ * @brief Initialize the PID controller
+ * @param self Pointer to the PID controller to initialize
+ * @param kp Proportional gain
+ * @param ki Integral gain
+ * @param kd Derivative gain
  * @retval None.
  */
 void pid_controller_init(PID_ControllerTypeDef *self, float kp, float ki, float kd);
